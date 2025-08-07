@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pendukung Keputusan untuk Automation Testing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .criteria-box {
+            transition: all 0.3s ease;
+        }
+        .criteria-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Sistem Pendukung Keputusan</h1>
+            <h2 class="text-2xl font-semibold text-blue-600">Pemilihan Strategi Automation Testing dengan Cypress</h2>
+            <p class="mt-4 text-gray-600 max-w-3xl mx-auto">Alat ini membantu menentukan prioritas pengujian otomatis menggunakan metode AHP dan SAW berdasarkan kriteria kompleksitas, risiko, dan dampak.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Metode AHP -->
+            <div class="bg-white p-6 rounded-xl shadow-md criteria-box">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Analytic Hierarchy Process (AHP)</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Metode untuk menentukan prioritas pengujian dengan perbandingan berpasangan antar kriteria.</p>
+                <button onclick="showAhpForm()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                    Gunakan Metode AHP
+                </button>
+            </div>
+
+            <!-- Metode SAW -->
+            <div class="bg-white p-6 rounded-xl shadow-md criteria-box">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Simple Additive Weighting (SAW)</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Metode penjumlahan terbobot untuk menentukan alternatif pengujian terbaik.</p>
+                <button onclick="showSawForm()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                    Gunakan Metode SAW
+                </button>
+            </div>
+
+            <!-- Panduan -->
+            <div class="bg-white p-6 rounded-xl shadow-md criteria-box">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Panduan Lengkap SPK</h3>
+                </div>
+                <div class="mb-4">
+                    <h4 class="font-medium text-purple-700 mb-2">Langkah-langkah:</h4>
+                    <ol class="list-decimal pl-5 space-y-1">
+                        <li>Identifikasi kriteria pengujian (minimum 2)</li>
+                        <li>Tentukan bobot masing-masing kriteria</li>
+                        <li>Tentukan skor alternatif pengujian</li>
+                        <li>Pilih metode AHP atau SAW</li>
+                        <li>Lakukan perhitungan prioritas</li>
+                        <li>Lihat rekomendasi hasil prioritas pengujian</li>
+                    </ol>
+                </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Panduan Penggunaan</h3>
+                </div>
+                <ul class="text-gray-600 space-y-2">
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Pilih metode SPK yang ingin digunakan</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Masukkan kriteria dan alternatif pengujian</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Lihat hasil rekomendasi pengujian prioritas</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Form AHP (Hidden by default) -->
+        <div id="ahpForm" class="hidden bg-white p-8 rounded-xl shadow-lg mb-12">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-6">Analytic Hierarchy Process (AHP)</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Input Kriteria -->
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">Masukkan Kriteria Pengujian</h4>
+                    <div id="criteriaInputs" class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama Kriteria (ex: Kompleksitas)">
+                            <button onclick="addCriteria()" class="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-lg font-medium text-gray-700 mt-8 mb-4">Masukkan Alternatif Pengujian</h4>
+                    <div id="alternativeInputs" class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama Alternatif (ex: Login Test)">
+                            <button onclick="addAlternative()" class="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Matriks Perbandingan -->
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">Matriks Perbandingan Kriteria</h4>
+                    <div id="comparisonMatrix" class="overflow-auto">
+                        <p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>
+                    </div>
+                    
+                    <button onclick="calculateAhp()" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                        Hitung Prioritas AHP
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hasil AHP -->
+            <div id="ahpResults" class="mt-12 hidden">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Hasil Perhitungan AHP</h4>
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                    <h5 class="font-medium text-blue-700">Tahapan Perhitungan AHP:</h5>
+                    <ol class="list-decimal pl-5 mt-2 space-y-2">
+                        <li>Membuat matriks perbandingan berpasangan kriteria</li>
+                        <li>Menghitung jumlah setiap kolom matriks</li>
+                        <li>Normalisasi matriks (nilai dibagi jumlah kolom)</li>
+                        <li>Menghitung rata-rata baris sebagai bobot prioritas</li>
+                        <li>Menghitung Consistency Ratio (CR) = CI/RI</li>
+                        <li>CR ≤ 0.1 menunjukkan konsistensi yang dapat diterima</li>
+                    </ol>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h5 class="text-lg font-medium text-gray-700 mb-3">Prioritas Kriteria</h5>
+                        <div id="criteriaPriorityChart" class="h-64">
+                            <canvas id="ahpCriteriaChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="text-lg font-medium text-gray-700 mb-3">Prioritas Alternatif</h5>
+                        <div id="alternativePriorityChart" class="h-64">
+                            <canvas id="ahpAlternativeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h5 class="text-lg font-medium text-gray-700 mb-3">Rekomendasi Pengujian</h5>
+                    <div id="ahpRecommendation" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-gray-700">Silakan lengkapi semua input dan klik "Hitung" untuk melihat rekomendasi pengujian</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form SAW (Hidden by default) -->
+        <div id="sawForm" class="hidden bg-white p-8 rounded-xl shadow-lg">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-6">Simple Additive Weighting (SAW)</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Input SAW -->
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">Masukkan Kriteria dan Bobot</h4>
+                    <div id="sawCriteriaInputs" class="space-y-4">
+                        <div class="grid grid-cols-3 gap-2 items-center">
+                            <input type="text" class="col-span-2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Kriteria">
+                            <input type="number" min="0" max="100" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Bobot (0-100)">
+                        </div>
+                    </div>
+                    <button onclick="addSawCriteria()" class="mt-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Tambah Kriteria
+                    </button>
+                    
+                    <h4 class="text-lg font-medium text-gray-700 mt-8 mb-4">Masukkan Alternatif Pengujian</h4>
+                    <div id="sawAlternativeInputs" class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Alternatif">
+                            <button onclick="addSawAlternative()" class="ml-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nilai Alternatif -->
+                <div>
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">Atribut Kriteria</h4>
+                    <div id="sawAttributes">
+                        <p class="text-gray-500 text-sm">Masukkan kriteria terlebih dahulu</p>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="text-lg font-medium text-gray-700 mb-2">Tipe Kriteria</h4>
+                        <p class="text-gray-500 text-sm mb-4">Pilih 'Benefit' jika nilai lebih tinggi lebih baik, atau 'Cost' jika nilai lebih rendah lebih baik</p>
+                        <div id="criteriaTypes"></div>
+                    </div>
+                    
+                    <button onclick="calculateSaw()" class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                        Hitung Nilai SAW
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hasil SAW -->
+            <div id="sawResults" class="mt-12 hidden">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Hasil Perhitungan SAW</h4>
+                <div class="bg-green-50 p-4 rounded-lg mb-6">
+                    <h5 class="font-medium text-green-700">Rumus SAW:</h5>
+                    <div class="text-sm mt-2">
+                        <p>V<sub>i</sub> = Σ(W<sub>j</sub> × R<sub>ij</sub>)</p>
+                        <p class="mt-2">Dimana:</p>
+                        <ul class="list-disc pl-5 mt-1">
+                            <li>V<sub>i</sub> = Nilai preferensi alternatif</li>
+                            <li>W<sub>j</sub> = Bobot kriteria</li>
+                            <li>R<sub>ij</sub> = Nilai alternatif yang dinormalisasi</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h5 class="text-lg font-medium text-gray-700 mb-3">Normalisasi Matriks</h5>
+                        <div id="normalizationMatrix" class="overflow-auto">
+                            <p class="text-gray-500">Matriks normalisasi akan muncul di sini</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="text-lg font-medium text-gray-700 mb-3">Skor Akhir Alternatif</h5>
+                        <div id="finalScores" class="h-64">
+                            <canvas id="sawChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h5 class="text-lg font-medium text-gray-700 mb-3">Rekomendasi Pengujian</h5>
+                    <div id="sawRecommendation" class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p class="text-gray-700">Hasil rekomendasi akan muncul di sini setelah perhitungan selesai</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center text-gray-500 text-sm">
+            <p><strong>Sistem Pendukung Keputusan untuk Automation Testing By Mulkhi Putra</strong> dengan metode AHP dan SAW</p>
+            <p class="mt-2">© 2025 - Dibangun dengan HTML, CSS, JavaScript dan Chart.js</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data storage
+let criteria = [];
+let alternatives = [];
+let comparisonMatrix = []; // Pastikan ini dideklarasikan
+let criteriaWeights = [];
+
+// SAW data
+let sawCriteria = [];
+let sawAlternatives = [];
+let sawValues = [];
+let criteriaTypes = [];
+
+// Tambahan: Input nilai alternatif terhadap kriteria untuk AHP
+let ahpAlternativeValues = [];
+
+// Tambahan: Variabel untuk menyimpan instance Chart.js agar bisa di-destroy
+let ahpCriteriaChartInstance = null;
+let ahpAlternativeChartInstance = null;
+let sawChartInstance = null;
+
+
+        // Show AHP form
+        function showAhpForm() {
+            document.getElementById('ahpForm').classList.remove('hidden');
+            document.getElementById('sawForm').classList.add('hidden');
+        }
+
+        // Show SAW form
+        function showSawForm() {
+            document.getElementById('sawForm').classList.remove('hidden');
+            document.getElementById('ahpForm').classList.add('hidden');
+        }
+
+        // Add criteria for AHP
+        // Add criteria for AHP
+function addCriteria() {
+    const input = document.querySelector('#criteriaInputs input');
+    const newCriteriaName = input.value.trim();
+    
+    if (newCriteriaName === '') {
+        alert('Silakan masukkan nama kriteria');
+        return;
+    }
+    
+    criteria.push(newCriteriaName);
+    input.value = '';
+    
+    // Panggil fungsi untuk memperbarui tampilan daftar kriteria
+    renderCriteriaList();
+    
+    // Panggil fungsi untuk memperbarui matriks perbandingan
+    updateComparisonMatrixStructure();
+    
+    // Render ulang matriks perbandingan
+    if (criteria.length >= 2) {
+        renderComparisonMatrix();
+    } else {
+        document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+    }
+
+    // Render ulang input nilai alternatif terhadap kriteria
+    renderAhpAlternativeValues();
+}
+
+
+        // Add alternative for AHP
+        function addAlternative() {
+            const input = document.querySelector('#alternativeInputs input');
+            if (input.value.trim() === '') {
+                alert('Silakan masukkan nama alternatif');
+                return;
+            }
+            
+            alternatives.push(input.value.trim());
+            input.value = '';
+            
+            renderAlternativeList();
+            renderAhpAlternativeValues();
+        }
+
+        // Render criteria list for AHP
+        function renderCriteriaList() {
+            const container = document.getElementById('criteriaInputs');
+            container.innerHTML = '';
+            
+            // Add existing criteria
+            criteria.forEach((c, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center bg-gray-50 p-3 rounded-lg';
+                div.innerHTML = `
+                    <span class="flex-1 font-medium">${c}</span>
+                    <button onclick="removeCriteria(${index})" class="text-red-500 hover:text-red-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Add input field
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'flex items-center';
+            inputDiv.innerHTML = `
+                <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama Kriteria (ex: Kompleksitas)">
+                <button onclick="addCriteria()" class="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(inputDiv);
+        }
+
+        // Render alternative list for AHP
+        function renderAlternativeList() {
+            const container = document.getElementById('alternativeInputs');
+            container.innerHTML = '';
+            
+            // Add existing alternatives
+            alternatives.forEach((a, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center bg-gray-50 p-3 rounded-lg';
+                div.innerHTML = `
+                    <span class="flex-1 font-medium">${a}</span>
+                    <button onclick="removeAlternative(${index})" class="text-red-500 hover:text-red-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Add input field
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'flex items-center';
+            inputDiv.innerHTML = `
+                <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nama Alternatif (ex: Login Test)">
+                <button onclick="addAlternative()" class="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(inputDiv);
+        }
+
+        // Fungsi baru untuk mengelola struktur comparisonMatrix
+function updateComparisonMatrixStructure() {
+    const newSize = criteria.length;
+    const oldMatrix = comparisonMatrix; // Simpan matriks lama
+
+    comparisonMatrix = []; // Reset matriks
+
+    for (let i = 0; i < newSize; i++) {
+        comparisonMatrix[i] = [];
+        for (let j = 0; j < newSize; j++) {
+            if (i === j) {
+                comparisonMatrix[i][j] = 1; // Diagonal selalu 1
+            } else if (i < oldMatrix.length && j < oldMatrix[i].length && oldMatrix[i][j] !== undefined) {
+                // Salin nilai yang sudah ada dari matriks lama
+                comparisonMatrix[i][j] = oldMatrix[i][j];
+            } else {
+                // Inisialisasi sel baru dengan null
+                comparisonMatrix[i][j] = null;
+            }
+        }
+    }
+}
+
+        // Remove criteria
+function removeCriteria(index) {
+    criteria.splice(index, 1);
+    renderCriteriaList();
+    
+    // Panggil fungsi untuk memperbarui matriks perbandingan
+    updateComparisonMatrixStructure();
+
+    if (criteria.length >= 2) {
+        renderComparisonMatrix();
+    } else {
+        document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+        document.getElementById('ahpResults').classList.add('hidden');
+    }
+    renderAhpAlternativeValues(); // Perbarui juga nilai alternatif
+}
+
+
+        // Remove alternative
+        function removeAlternative(index) {
+            alternatives.splice(index, 1);
+            renderAlternativeList();
+            renderAhpAlternativeValues();
+        }
+
+        // Render AHP comparison matrix
+        // Render AHP comparison matrix
+function renderComparisonMatrix() {
+    const container = document.getElementById('comparisonMatrix');
+    container.innerHTML = '';
+    
+    if (criteria.length < 2) {
+        container.innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+        return;
+    }
+
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'w-full border-collapse';
+    
+    // Create header row
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = '<th class="p-2 border bg-gray-100"></th>';
+    
+    criteria.forEach(c => {
+        headerRow.innerHTML += `<th class="p-2 border bg-gray-100 font-medium">${c}</th>`;
+    });
+    
+    table.appendChild(headerRow);
+    
+    // Create body rows
+    criteria.forEach((rowCrit, rowIdx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td class="p-2 border bg-gray-100 font-medium">${rowCrit}</td>`;
+        
+        criteria.forEach((colCrit, colIdx) => {
+            if (rowIdx === colIdx) {
+                row.innerHTML += `<td class="p-2 border text-center">1</td>`;
+            } else if (rowIdx < colIdx) {
+                // Upper triangle (input fields)
+                const selectValue = comparisonMatrix[rowIdx][colIdx]; // Ambil nilai yang sudah ada
+                row.innerHTML += `
+                    <td class="p-2 border">
+                        <select class="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            onchange="updateComparisonMatrix(${rowIdx}, ${colIdx}, this.value)">
+                            <option value="">Pilih</option>
+                            <option value="9" ${selectValue === 9 ? 'selected' : ''}>9 - Mutlak lebih penting</option>
+                            <option value="7" ${selectValue === 7 ? 'selected' : ''}>7 - Sangat lebih penting</option>
+                            <option value="5" ${selectValue === 5 ? 'selected' : ''}>5 - Lebih penting</option>
+                            <option value="3" ${selectValue === 3 ? 'selected' : ''}>3 - Sedikit lebih penting</option>
+                            <option value="1" ${selectValue === 1 ? 'selected' : ''}>1 - Sama penting</option>
+                            <option value="0.333" ${selectValue === 0.333 ? 'selected' : ''}>1/3 - Sedikit kurang penting</option>
+                            <option value="0.2" ${selectValue === 0.2 ? 'selected' : ''}>1/5 - Kurang penting</option>
+                            <option value="0.142" ${selectValue === 0.142 ? 'selected' : ''}>1/7 - Sangat kurang penting</option>
+                            <option value="0.111" ${selectValue === 0.111 ? 'selected' : ''}>1/9 - Mutlak kurang penting</option>
+                        </select>
+                    </td>
+                `;
+            } else {
+                // Lower triangle (reciprocal values)
+                const value = comparisonMatrix[rowIdx][colIdx];
+                if (value !== null) { // Cek apakah nilai sudah ada (bukan null)
+                    row.innerHTML += `<td class="p-2 border text-center">${value.toFixed(3)}</td>`;
+                } else {
+                    row.innerHTML += `<td class="p-2 border text-gray-400 text-center">?</td>`;
+                }
+            }
+        });
+        
+        table.appendChild(row);
+    });
+    
+    container.appendChild(table);
+}
+
+
+        // Update comparison matrix
+        // Update comparison matrix
+function updateComparisonMatrix(row, col, value) {
+    if (value === '') {
+        comparisonMatrix[row][col] = null; // Set ke null jika tidak dipilih
+        comparisonMatrix[col][row] = null; // Set ke null juga untuk reciprocal
+    } else {
+        value = parseFloat(value);
+        comparisonMatrix[row][col] = value;
+        comparisonMatrix[col][row] = 1 / value;
+    }
+    
+    // Update the matrix display
+    renderComparisonMatrix();
+    
+    // Hide results if they were shown
+    document.getElementById('ahpResults').classList.add('hidden');
+}
+
+
+        // Render input nilai alternatif terhadap kriteria (AHP)
+        function renderAhpAlternativeValues() {
+            const container = document.getElementById('alternativeInputs');
+            if (alternatives.length === 0 || criteria.length === 0) return;
+            let html = '<div class="mt-4"><h4 class="text-md font-medium text-gray-700 mb-2">Nilai Alternatif terhadap Kriteria</h4>';
+            html += '<div class="overflow-auto"><table class="w-full border-collapse"><thead><tr><th class="p-2 border bg-gray-100">Alternatif \\ Kriteria</th>';
+            criteria.forEach(c => { html += `<th class='p-2 border bg-gray-100'>${c}</th>`; });
+            html += '</tr></thead><tbody>';
+            // Inisialisasi jika belum ada
+            if (ahpAlternativeValues.length !== alternatives.length) {
+                ahpAlternativeValues = [];
+                for (let i = 0; i < alternatives.length; i++) {
+                    ahpAlternativeValues[i] = new Array(criteria.length).fill(0);
+                }
+            }
+            alternatives.forEach((alt, i) => {
+                html += `<tr><td class='p-2 border bg-gray-100 font-medium'>${alt}</td>`;
+                criteria.forEach((_, j) => {
+                    html += `<td class='p-2 border'><input type='number' min='0' class='w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500' value='${ahpAlternativeValues[i][j] || ''}' onchange='updateAhpAltValue(${i},${j},this.value)'></td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div></div>';
+            container.insertAdjacentHTML('beforeend', html);
+        }
+        function updateAhpAltValue(i, j, value) {
+            ahpAlternativeValues[i][j] = parseFloat(value) || 0;
+        }
+        // Panggil renderAhpAlternativeValues setiap kali alternatif/kriteria berubah
+        // Tambahkan di akhir renderCriteriaList dan renderAlternativeList
+        // ...existing code...
+        // Perbaiki calculateAhp agar menghitung bobot alternatif berdasarkan input user
+        function calculateAhp() {
+            // Validasi matrix kriteria
+            for (let i = 0; i < criteria.length; i++) {
+                for (let j = 0; j < criteria.length; j++) {
+                    if (i < j && comparisonMatrix[i][j] === '') {
+                        alert(`Silakan lengkapi perbandingan antara ${criteria[i]} dan ${criteria[j]}`);
+                        return;
+                    }
+                }
+            }
+            if (alternatives.length === 0) {
+                alert('Silakan masukkan minimal satu alternatif');
+                return;
+            }
+            // Validasi nilai alternatif
+            for (let i = 0; i < alternatives.length; i++) {
+                for (let j = 0; j < criteria.length; j++) {
+                    if (isNaN(ahpAlternativeValues[i][j]) || ahpAlternativeValues[i][j] === 0) {
+                        alert(`Silakan lengkapi nilai untuk alternatif ${alternatives[i]} pada kriteria ${criteria[j]}`);
+                        return;
+                    }
+                }
+            }
+            // Calculate priority weights
+            const n = criteria.length;
+            criteriaWeights = new Array(n).fill(0);
+            
+            // Step 1: Sum each column
+            const columnSums = new Array(n).fill(0);
+            for (let j = 0; j < n; j++) {
+                for (let i = 0; i < n; i++) {
+                    columnSums[j] += comparisonMatrix[i][j];
+                }
+            }
+            
+            // Step 2: Normalize matrix (divide each element by column sum)
+            const normalizedMatrix = [];
+            for (let i = 0; i < n; i++) {
+                normalizedMatrix[i] = [];
+                for (let j = 0; j < n; j++) {
+                    normalizedMatrix[i][j] = comparisonMatrix[i][j] / columnSums[j];
+                }
+            }
+            
+            // Step 3: Calculate row averages (priority weights)
+            for (let i = 0; i < n; i++) {
+                criteriaWeights[i] = normalizedMatrix[i].reduce((sum, val) => sum + val, 0) / n;
+            }
+            
+            // Calculate consistency
+            // Step 4: Calculate weighted sum vector
+            const weightedSum = new Array(n).fill(0);
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    weightedSum[i] += comparisonMatrix[i][j] * criteriaWeights[j];
+                }
+            }
+            
+            // Step 5: Calculate consistency vector
+            const consistencyVector = [];
+            for (let i = 0; i < n; i++) {
+                consistencyVector.push(weightedSum[i] / criteriaWeights[i]);
+            }
+            
+            // Step 6: Calculate lambda max and CI
+            const lambdaMax = consistencyVector.reduce((sum, val) => sum + val, 0) / n;
+            const CI = (lambdaMax - n) / (n - 1);
+            
+            // RI values for n=1 to 10
+            const RI = [0, 0, 0.58, 0.9, 1.12, 1.24, 1.32, 1.41, 1.45, 1.49];
+            const CR = CI / RI[n];
+            
+            // Hitung bobot alternatif berdasarkan bobot kriteria
+            const altScores = [];
+            for (let i = 0; i < alternatives.length; i++) {
+                let score = 0;
+                for (let j = 0; j < criteria.length; j++) {
+                    // Normalisasi per kriteria (benefit, max)
+                    let max = Math.max(...ahpAlternativeValues.map(row => row[j]));
+                    score += (ahpAlternativeValues[i][j] / max) * criteriaWeights[j];
+                }
+                altScores.push(score);
+            }
+            // Normalisasi skor alternatif
+            const sumAlt = altScores.reduce((a, b) => a + b, 0);
+            const altPriorities = altScores.map(s => s / sumAlt);
+            // Tampilkan hasil
+            displayAhpResults(CR, altPriorities);
+        }
+        // Ubah displayAhpResults agar menerima altPriorities
+        function displayAhpResults(consistencyRatio, altPriorities) {
+    document.getElementById('ahpResults').classList.remove('hidden');
+
+    // Display criteria priorities
+    const ctx1 = document.getElementById('ahpCriteriaChart').getContext('2d');
+    // Perbaikan: Pastikan itu adalah instance Chart sebelum destroy
+    if (ahpCriteriaChartInstance instanceof Chart) { // Gunakan variabel global
+        ahpCriteriaChartInstance.destroy();
+    }
+
+    ahpCriteriaChartInstance = new Chart(ctx1, { // Simpan instance ke variabel global
+        type: 'bar',
+        data: {
+            labels: criteria,
+            datasets: [{
+                label: 'Bobot Prioritas',
+                data: criteriaWeights,
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1
+                }
+            }
+        }
+    });
+
+    // Chart alternatif
+    const ctx2 = document.getElementById('ahpAlternativeChart').getContext('2d');
+    // Perbaikan: Pastikan itu adalah instance Chart sebelum destroy
+    if (ahpAlternativeChartInstance instanceof Chart) { // Gunakan variabel global
+        ahpAlternativeChartInstance.destroy();
+    }
+
+    ahpAlternativeChartInstance = new Chart(ctx2, { // Simpan instance ke variabel global
+        type: 'bar',
+        data: {
+            labels: alternatives,
+            datasets: [{
+                label: 'Bobot Prioritas',
+                data: altPriorities,
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1
+                }
+            }
+        }
+    });
+
+    // Perbaikan: Temukan maxIndex di sini
+    const maxScore = Math.max(...altPriorities);
+    const maxIndex = altPriorities.indexOf(maxScore);
+
+    // Generate recommendation
+    let recommendationText = '';
+    if (consistencyRatio < 0.1) {
+        recommendationText += `<p class="text-green-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Konsisten)</p>`;
+    } else {
+        recommendationText += `<p class="text-red-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Tidak Konsisten - Silakan periksa kembali perbandingan kriteria)</p>`;
+    }
+
+    recommendationText += `<p class="text-gray-700 mb-2">Berdasarkan perhitungan AHP, alternatif pengujian dengan prioritas tertinggi adalah:</p>
+                         <p class="text-lg font-semibold text-blue-600">${alternatives[maxIndex]}</p>
+                         <p class="text-gray-600 mt-4">Disarankan untuk memprioritaskan pengujian ini dalam rencana automation testing Anda.</p>`;
+
+    document.getElementById('ahpRecommendation').innerHTML = recommendationText;
+}
+
+
+
+        // SAW functions
+        function addSawCriteria() {
+            const inputs = document.querySelectorAll('#sawCriteriaInputs .grid input');
+            const name = inputs[0].value.trim();
+            const weight = parseInt(inputs[1].value);
+            
+            if (!name || isNaN(weight) || weight < 0 || weight > 100) {
+                alert('Silakan masukkan nama kriteria dan bobot (0-100)');
+                return;
+            }
+            
+            sawCriteria.push({
+                name: name,
+                weight: weight
+            });
+            
+            renderSawCriteriaList();
+            renderSawAttributes();
+        }
+
+        function addSawAlternative() {
+            const input = document.querySelector('#sawAlternativeInputs input');
+            if (input.value.trim() === '') {
+                alert('Silakan masukkan nama alternatif');
+                return;
+            }
+            
+            sawAlternatives.push(input.value.trim());
+            input.value = '';
+            
+            renderSawAlternativeList();
+            renderSawAttributes();
+        }
+
+        function renderSawCriteriaList() {
+            const container = document.getElementById('sawCriteriaInputs');
+            container.innerHTML = '';
+            
+            sawCriteria.forEach((c, index) => {
+                const div = document.createElement('div');
+                div.className = 'grid grid-cols-3 gap-2 items-center bg-gray-50 p-3 rounded-lg';
+                div.innerHTML = `
+                    <span class="col-span-2 font-medium">${c.name}</span>
+                    <span class="text-right">${c.weight}%</span>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Add input fields
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'grid grid-cols-3 gap-2 items-center';
+            inputDiv.innerHTML = `
+                <input type="text" class="col-span-2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Kriteria">
+                <input type="number" min="0" max="100" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Bobot (0-100)">
+            `;
+            container.appendChild(inputDiv);
+            
+            // Add button
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'mt-2';
+            buttonDiv.innerHTML = `
+                <button onclick="addSawCriteria()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Tambah Kriteria
+                </button>
+            `;
+            container.appendChild(buttonDiv);
+            
+            // Update criteria types
+            renderCriteriaTypes();
+        }
+
+        function renderSawAlternativeList() {
+            const container = document.getElementById('sawAlternativeInputs');
+            container.innerHTML = '';
+            
+            sawAlternatives.forEach((a, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center bg-gray-50 p-3 rounded-lg';
+                div.innerHTML = `
+                    <span class="flex-1 font-medium">${a}</span>
+                    <button onclick="removeSawAlternative(${index})" class="text-red-500 hover:text-red-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Add input field
+            const inputDiv = document.createElement('div');
+            inputDiv.className = 'flex items-center';
+            inputDiv.innerHTML = `
+                <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Alternatif">
+                <button onclick="addSawAlternative()" class="ml-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            container.appendChild(inputDiv);
+        }
+
+        function removeSawAlternative(index) {
+            sawAlternatives.splice(index, 1);
+            renderSawAlternativeList();
+            renderSawAttributes();
+        }
+
+        function renderSawAttributes() {
+            const container = document.getElementById('sawAttributes');
+            
+            if (sawCriteria.length === 0 || sawAlternatives.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Masukkan kriteria terlebih dahulu</p>';
+                return;
+            }
+            
+            // Create table for attribute values
+            let html = `
+                <div class="overflow-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-2 border bg-gray-100">Alternatif \ Kriteria</th>
+            `;
+            
+            sawCriteria.forEach(c => {
+                html += `<th class="p-2 border bg-gray-100">${c.name}</th>`;
+            });
+            
+            html += `</tr></thead><tbody>`;
+            
+            // Initialize sawValues if needed
+            if (sawValues.length !== sawAlternatives.length) {
+                sawValues = [];
+                for (let i = 0; i < sawAlternatives.length; i++) {
+                    sawValues[i] = new Array(sawCriteria.length).fill(0);
+                }
+            }
+            
+            // Create rows for alternatives
+            sawAlternatives.forEach((alt, altIdx) => {
+                html += `<tr><td class="p-2 border bg-gray-100 font-medium">${alt}</td>`;
+                
+                sawCriteria.forEach((crit, critIdx) => {
+                    html += `
+                        <td class="p-2 border">
+                            <input type="number" 
+                                   class="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                   value="${sawValues[altIdx][critIdx] || ''}" 
+                                   onchange="updateSawValue(${altIdx}, ${critIdx}, this.value)">
+                        </td>
+                    `;
+                });
+                
+                html += `</tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderCriteriaTypes() {
+            const container = document.getElementById('criteriaTypes');
+            
+            if (sawCriteria.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Masukkan kriteria terlebih dahulu</p>';
+                return;
+            }
+            
+            let html = '<div class="space-y-2">';
+            
+            sawCriteria.forEach((crit, index) => {
+                // Initialize criteria types if needed
+                if (!criteriaTypes[index]) {
+                    criteriaTypes[index] = 'benefit';
+                }
+                
+                html += `
+                    <div class="flex items-center">
+                        <span class="w-1/3 font-medium">${crit.name}</span>
+                        <select class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                onchange="updateCriteriaType(${index}, this.value)">
+                            <option value="benefit" ${criteriaTypes[index] === 'benefit' ? 'selected' : ''}>Benefit</option>
+                            <option value="cost" ${criteriaTypes[index] === 'cost' ? 'selected' : ''}>Cost</option>
+                        </select>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function updateSawValue(altIdx, critIdx, value) {
+            sawValues[altIdx][critIdx] = parseFloat(value) || 0;
+        }
+
+        function updateCriteriaType(index, type) {
+            criteriaTypes[index] = type;
+        }
+
+        function calculateSaw() {
+            // Validate input
+            if (sawCriteria.length === 0) {
+                alert('Silakan masukkan minimal satu kriteria');
+                return;
+            }
+            
+            if (sawAlternatives.length === 0) {
+                alert('Silakan masukkan minimal satu alternatif');
+                return;
+            }
+            
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                for (let j = 0; j < sawCriteria.length; j++) {
+                    if (isNaN(sawValues[i][j])) {
+                        alert(`Silakan lengkapi nilai untuk alternatif ${sawAlternatives[i]} pada kriteria ${sawCriteria[j].name}`);
+                        return;
+                    }
+                }
+            }
+            
+            // Normalize the weights
+            const totalWeight = sawCriteria.reduce((sum, crit) => sum + crit.weight, 0);
+            const normalizedWeights = sawCriteria.map(crit => crit.weight / totalWeight);
+            
+            // Step 1: Normalize the decision matrix
+            const normalizedMatrix = [];
+            const maxValues = [];
+            const minValues = [];
+            
+            for (let j = 0; j < sawCriteria.length; j++) {
+                const columnValues = sawValues.map(row => row[j]);
+                maxValues.push(Math.max(...columnValues));
+                minValues.push(Math.min(...columnValues));
+            }
+            
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                normalizedMatrix[i] = [];
+                for (let j = 0; j < sawCriteria.length; j++) {
+                    if (criteriaTypes[j] === 'benefit') {
+                        normalizedMatrix[i][j] = sawValues[i][j] / maxValues[j];
+                    } else { // cost
+                        normalizedMatrix[i][j] = minValues[j] / sawValues[i][j];
+                    }
+                }
+            }
+            
+            // Display normalization matrix
+            let normMatrixHtml = `
+                <div class="overflow-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-2 border bg-gray-100">Alternatif \ Kriteria</th>
+            `;
+            
+            sawCriteria.forEach(c => {
+                normMatrixHtml += `<th class="p-2 border bg-gray-100">${c.name}</th>`;
+            });
+            
+            normMatrixHtml += `</tr></thead><tbody>`;
+            
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                normMatrixHtml += `<tr><td class="p-2 border bg-gray-100 font-medium">${sawAlternatives[i]}</td>`;
+                
+                for (let j = 0; j < sawCriteria.length; j++) {
+                    normMatrixHtml += `<td class="p-2 border text-center">${normalizedMatrix[i][j].toFixed(3)}</td>`;
+                }
+                
+                normMatrixHtml += `</tr>`;
+            }
+            
+            normMatrixHtml += `</tbody></table></div>`;
+            document.getElementById('normalizationMatrix').innerHTML = normMatrixHtml;
+            
+            // Step 2: Calculate the final score
+            const finalScores = [];
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                let score = 0;
+                for (let j = 0; j < sawCriteria.length; j++) {
+                    score += normalizedMatrix[i][j] * normalizedWeights[j];
+                }
+                finalScores.push(score);
+            }
+            
+            // Display final scores chart
+            const ctx = document.getElementById('sawChart').getContext('2d');
+            if (window.sawChart && typeof window.sawChart.destroy === 'function') {
+                window.sawChart.destroy();
+            }
+            
+            window.sawChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sawAlternatives,
+                    datasets: [{
+                        label: 'Skor Akhir',
+                        data: finalScores,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                }
+            });
+            
+            // Find and display recommendation
+            const maxScore = Math.max(...finalScores);
+            const bestIndex = finalScores.indexOf(maxScore);
+            
+            let recommendationText = `
+                <p class="text-gray-700 mb-2">Berdasarkan perhitungan SAW, alternatif pengujian dengan skor tertinggi adalah:</p>
+                <p class="text-lg font-semibold text-green-600">${sawAlternatives[bestIndex]} (Skor: ${maxScore.toFixed(3)})</p>
+                <p class="text-gray-600 mt-4">Rincian skor:</p>
+                <ul class="list-disc list-inside mt-2">
+            `;
+            
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                recommendationText += `<li class="text-gray-600">${sawAlternatives[i]}: ${finalScores[i].toFixed(3)}</li>`;
+            }
+            
+            recommendationText += `
+                </ul>
+                <p class="text-gray-600 mt-4">Disarankan untuk memprioritaskan pengujian ini dalam rencana automation testing Anda.</p>
+            `;
+            
+            document.getElementById('sawRecommendation').innerHTML = recommendationText;
+            
+            // Show results section
+            document.getElementById('sawResults').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
