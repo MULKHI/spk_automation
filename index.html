@@ -6,6 +6,32 @@
     <title>Sistem Pendukung Keputusan untuk Automation Testing</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-analytics.js"; // Opsional jika tidak menggunakan Analytics
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmhgQZFhmilPoXPZXVwdd13M9okQeGX6U",
+            authDomain: "spk-automation-testing.firebaseapp.com",
+            projectId: "spk-automation-testing",
+            storageBucket: "spk-automation-testing.firebasestorage.app",
+            messagingSenderId: "967707640362",
+            appId: "1:967707640362:web:80a9e7709c861e88633953",
+            measurementId: "G-3DEYV8PC6T"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        // const analytics = getAnalytics(app); // Opsional
+
+        // Make db globally accessible (or pass it to functions)
+    window.db = db;
+    // Ekspor fungsi modular Firestore agar bisa dipakai di script utama
+    window.firebaseExports = { collection, addDoc, query, orderBy, getDocs };
+    </script>
     <style>
         .criteria-box {
             transition: all 0.3s ease;
@@ -61,20 +87,6 @@
             <div class="bg-white p-6 rounded-xl shadow-md criteria-box">
                 <div class="flex items-center mb-4">
                     <div class="bg-purple-100 p-3 rounded-full mr-4">
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800">Panduan Lengkap SPK</h3>
-                </div>
-                <div class="mb-4">
-                    <h4 class="font-medium text-purple-700 mb-2">Langkah-langkah:</h4>
-                    <ol class="list-decimal pl-5 space-y-1">
-                        <li>Identifikasi kriteria pengujian (minimum 2)</li>
-                        <li>Tentukan bobot masing-masing kriteria</li>
-                        <li>Tentukan skor alternatif pengujian</li>
-                        <li>Pilih metode AHP atau SAW</li>
-                        <li>Lakukan perhitungan prioritas</li>
-                        <li>Lihat rekomendasi hasil prioritas pengujian</li>
-                    </ol>
-                </div>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
@@ -279,6 +291,14 @@
             </div>
         </div>
 
+        <!-- Riwayat Perhitungan -->
+        <div class="mt-16 bg-white p-8 rounded-xl shadow-lg">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-6">Riwayat Perhitungan</h3>
+            <div id="historyList" class="space-y-6">
+                <p class="text-gray-500 text-center">Memuat riwayat perhitungan...</p>
+            </div>
+        </div>
+
         <footer class="mt-16 text-center text-gray-500 text-sm">
             <p><strong>Sistem Pendukung Keputusan untuk Automation Testing By Mulkhi Putra</strong> dengan metode AHP dan SAW</p>
             <p class="mt-2">© 2025 - Dibangun dengan HTML, CSS, JavaScript dan Chart.js</p>
@@ -287,24 +307,113 @@
 
     <script>
         // Data storage
-let criteria = [];
-let alternatives = [];
-let comparisonMatrix = []; // Pastikan ini dideklarasikan
-let criteriaWeights = [];
+        let criteria = [];
+        let alternatives = [];
+        let comparisonMatrix = []; // Pastikan ini dideklarasikan
+        let criteriaWeights = [];
 
-// SAW data
-let sawCriteria = [];
-let sawAlternatives = [];
-let sawValues = [];
-let criteriaTypes = [];
+        // SAW data
+        let sawCriteria = [];
+        let sawAlternatives = [];
+        let sawValues = [];
+        let criteriaTypes = [];
 
-// Tambahan: Input nilai alternatif terhadap kriteria untuk AHP
-let ahpAlternativeValues = [];
+        // Tambahan: Input nilai alternatif terhadap kriteria untuk AHP
+        let ahpAlternativeValues = [];
 
-// Tambahan: Variabel untuk menyimpan instance Chart.js agar bisa di-destroy
-let ahpCriteriaChartInstance = null;
-let ahpAlternativeChartInstance = null;
-let sawChartInstance = null;
+        // Tambahan: Variabel untuk menyimpan instance Chart.js agar bisa di-destroy
+        let ahpCriteriaChartInstance = null;
+        let ahpAlternativeChartInstance = null;
+        let sawChartInstance = null;
+
+
+        // Firebase Functions (modular v9)
+        async function saveCalculationHistory(type, data) {
+            try {
+                if (!window.db || !window.firebaseExports) {
+                    console.error("Firestore is not initialized.");
+                    alert("Gagal menyimpan riwayat: Firestore belum siap.");
+                    return;
+                }
+                const { collection, addDoc } = window.firebaseExports;
+                const colRef = collection(window.db, "calculations");
+                await addDoc(colRef, {
+                    type: type,
+                    timestamp: new Date(),
+                    data: data
+                });
+                loadCalculationHistory();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Gagal menyimpan riwayat perhitungan. Silakan cek konsol untuk detail.");
+            }
+        }
+
+        async function loadCalculationHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '<p class="text-gray-500 text-center">Memuat riwayat perhitungan...</p>';
+            try {
+                if (!window.db || !window.firebaseExports) {
+                    console.error("Firestore is not initialized.");
+                    historyList.innerHTML = '<p class="text-red-500 text-center">Gagal memuat riwayat: Firestore belum siap.</p>';
+                    return;
+                }
+                const { collection, query, orderBy, getDocs } = window.firebaseExports;
+                const colRef = collection(window.db, "calculations");
+                const q = query(colRef, orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    historyList.innerHTML = '<p class="text-gray-500 text-center">Belum ada riwayat perhitungan.</p>';
+                    return;
+                }
+
+                historyList.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const history = doc.data();
+                    // Firestore Timestamp to JS Date
+                    let date = '';
+                    if (history.timestamp && typeof history.timestamp.toDate === 'function') {
+                        date = history.timestamp.toDate().toLocaleString();
+                    } else if (history.timestamp instanceof Date) {
+                        date = history.timestamp.toLocaleString();
+                    } else {
+                        date = '';
+                    }
+                    let detailsHtml = '';
+
+                    if (history.type === 'AHP') {
+                        detailsHtml = `
+                            <p><strong>Metode:</strong> AHP</p>
+                            <p><strong>Waktu:</strong> ${date}</p>
+                            <p><strong>Kriteria:</strong> ${history.data.criteria.join(', ')}</p>
+                            <p><strong>Alternatif:</strong> ${history.data.alternatives.join(', ')}</p>
+                            <p><strong>Rekomendasi:</strong> ${history.data.recommendation}</p>
+                            <p><strong>Rasio Konsistensi:</strong> ${history.data.consistencyRatio.toFixed(3)} (${history.data.consistencyStatus})</p>
+                        `;
+                    } else if (history.type === 'SAW') {
+                        detailsHtml = `
+                            <p><strong>Metode:</strong> SAW</p>
+                            <p><strong>Waktu:</strong> ${date}</p>
+                            <p><strong>Kriteria:</strong> ${history.data.criteria.map(c => `${c.name} (${c.weight}%)`).join(', ')}</p>
+                            <p><strong>Alternatif:</strong> ${history.data.alternatives.join(', ')}</p>
+                            <p><strong>Rekomendasi:</strong> ${history.data.recommendation} (Skor: ${history.data.maxScore.toFixed(3)})</p>
+                        `;
+                    }
+
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200';
+                    historyItem.innerHTML = detailsHtml;
+                    historyList.appendChild(historyItem);
+                });
+            } catch (e) {
+                console.error("Error loading documents: ", e);
+                historyList.innerHTML = '<p class="text-red-500 text-center">Gagal memuat riwayat perhitungan. Silakan cek konsol.</p>';
+            }
+        }
+
+        // Call load history on page load
+        document.addEventListener('DOMContentLoaded', loadCalculationHistory);
 
 
         // Show AHP form
@@ -320,35 +429,34 @@ let sawChartInstance = null;
         }
 
         // Add criteria for AHP
-        // Add criteria for AHP
-function addCriteria() {
-    const input = document.querySelector('#criteriaInputs input');
-    const newCriteriaName = input.value.trim();
-    
-    if (newCriteriaName === '') {
-        alert('Silakan masukkan nama kriteria');
-        return;
-    }
-    
-    criteria.push(newCriteriaName);
-    input.value = '';
-    
-    // Panggil fungsi untuk memperbarui tampilan daftar kriteria
-    renderCriteriaList();
-    
-    // Panggil fungsi untuk memperbarui matriks perbandingan
-    updateComparisonMatrixStructure();
-    
-    // Render ulang matriks perbandingan
-    if (criteria.length >= 2) {
-        renderComparisonMatrix();
-    } else {
-        document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
-    }
+        function addCriteria() {
+            const input = document.querySelector('#criteriaInputs input');
+            const newCriteriaName = input.value.trim();
+            
+            if (newCriteriaName === '') {
+                alert('Silakan masukkan nama kriteria');
+                return;
+            }
+            
+            criteria.push(newCriteriaName);
+            input.value = '';
+            
+            // Panggil fungsi untuk memperbarui tampilan daftar kriteria
+            renderCriteriaList();
+            
+            // Panggil fungsi untuk memperbarui matriks perbandingan
+            updateComparisonMatrixStructure();
+            
+            // Render ulang matriks perbandingan
+            if (criteria.length >= 2) {
+                renderComparisonMatrix();
+            } else {
+                document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+            }
 
-    // Render ulang input nilai alternatif terhadap kriteria
-    renderAhpAlternativeValues();
-}
+            // Render ulang input nilai alternatif terhadap kriteria
+            renderAhpAlternativeValues();
+        }
 
 
         // Add alternative for AHP
@@ -435,44 +543,44 @@ function addCriteria() {
         }
 
         // Fungsi baru untuk mengelola struktur comparisonMatrix
-function updateComparisonMatrixStructure() {
-    const newSize = criteria.length;
-    const oldMatrix = comparisonMatrix; // Simpan matriks lama
+        function updateComparisonMatrixStructure() {
+            const newSize = criteria.length;
+            const oldMatrix = comparisonMatrix; // Simpan matriks lama
 
-    comparisonMatrix = []; // Reset matriks
+            comparisonMatrix = []; // Reset matriks
 
-    for (let i = 0; i < newSize; i++) {
-        comparisonMatrix[i] = [];
-        for (let j = 0; j < newSize; j++) {
-            if (i === j) {
-                comparisonMatrix[i][j] = 1; // Diagonal selalu 1
-            } else if (i < oldMatrix.length && j < oldMatrix[i].length && oldMatrix[i][j] !== undefined) {
-                // Salin nilai yang sudah ada dari matriks lama
-                comparisonMatrix[i][j] = oldMatrix[i][j];
-            } else {
-                // Inisialisasi sel baru dengan null
-                comparisonMatrix[i][j] = null;
+            for (let i = 0; i < newSize; i++) {
+                comparisonMatrix[i] = [];
+                for (let j = 0; j < newSize; j++) {
+                    if (i === j) {
+                        comparisonMatrix[i][j] = 1; // Diagonal selalu 1
+                    } else if (i < oldMatrix.length && j < oldMatrix[i].length && oldMatrix[i][j] !== undefined) {
+                        // Salin nilai yang sudah ada dari matriks lama
+                        comparisonMatrix[i][j] = oldMatrix[i][j];
+                    } else {
+                        // Inisialisasi sel baru dengan null
+                        comparisonMatrix[i][j] = null;
+                    }
+                }
             }
         }
-    }
-}
 
         // Remove criteria
-function removeCriteria(index) {
-    criteria.splice(index, 1);
-    renderCriteriaList();
-    
-    // Panggil fungsi untuk memperbarui matriks perbandingan
-    updateComparisonMatrixStructure();
+        function removeCriteria(index) {
+            criteria.splice(index, 1);
+            renderCriteriaList();
+            
+            // Panggil fungsi untuk memperbarui matriks perbandingan
+            updateComparisonMatrixStructure();
 
-    if (criteria.length >= 2) {
-        renderComparisonMatrix();
-    } else {
-        document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
-        document.getElementById('ahpResults').classList.add('hidden');
-    }
-    renderAhpAlternativeValues(); // Perbarui juga nilai alternatif
-}
+            if (criteria.length >= 2) {
+                renderComparisonMatrix();
+            } else {
+                document.getElementById('comparisonMatrix').innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+                document.getElementById('ahpResults').classList.add('hidden');
+            }
+            renderAhpAlternativeValues(); // Perbarui juga nilai alternatif
+        }
 
 
         // Remove alternative
@@ -483,111 +591,127 @@ function removeCriteria(index) {
         }
 
         // Render AHP comparison matrix
-        // Render AHP comparison matrix
-function renderComparisonMatrix() {
-    const container = document.getElementById('comparisonMatrix');
-    container.innerHTML = '';
-    
-    if (criteria.length < 2) {
-        container.innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
-        return;
-    }
-
-    // Create table
-    const table = document.createElement('table');
-    table.className = 'w-full border-collapse';
-    
-    // Create header row
-    const headerRow = document.createElement('tr');
-    headerRow.innerHTML = '<th class="p-2 border bg-gray-100"></th>';
-    
-    criteria.forEach(c => {
-        headerRow.innerHTML += `<th class="p-2 border bg-gray-100 font-medium">${c}</th>`;
-    });
-    
-    table.appendChild(headerRow);
-    
-    // Create body rows
-    criteria.forEach((rowCrit, rowIdx) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td class="p-2 border bg-gray-100 font-medium">${rowCrit}</td>`;
-        
-        criteria.forEach((colCrit, colIdx) => {
-            if (rowIdx === colIdx) {
-                row.innerHTML += `<td class="p-2 border text-center">1</td>`;
-            } else if (rowIdx < colIdx) {
-                // Upper triangle (input fields)
-                const selectValue = comparisonMatrix[rowIdx][colIdx]; // Ambil nilai yang sudah ada
-                row.innerHTML += `
-                    <td class="p-2 border">
-                        <select class="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                            onchange="updateComparisonMatrix(${rowIdx}, ${colIdx}, this.value)">
-                            <option value="">Pilih</option>
-                            <option value="9" ${selectValue === 9 ? 'selected' : ''}>9 - Mutlak lebih penting</option>
-                            <option value="7" ${selectValue === 7 ? 'selected' : ''}>7 - Sangat lebih penting</option>
-                            <option value="5" ${selectValue === 5 ? 'selected' : ''}>5 - Lebih penting</option>
-                            <option value="3" ${selectValue === 3 ? 'selected' : ''}>3 - Sedikit lebih penting</option>
-                            <option value="1" ${selectValue === 1 ? 'selected' : ''}>1 - Sama penting</option>
-                            <option value="0.333" ${selectValue === 0.333 ? 'selected' : ''}>1/3 - Sedikit kurang penting</option>
-                            <option value="0.2" ${selectValue === 0.2 ? 'selected' : ''}>1/5 - Kurang penting</option>
-                            <option value="0.142" ${selectValue === 0.142 ? 'selected' : ''}>1/7 - Sangat kurang penting</option>
-                            <option value="0.111" ${selectValue === 0.111 ? 'selected' : ''}>1/9 - Mutlak kurang penting</option>
-                        </select>
-                    </td>
-                `;
-            } else {
-                // Lower triangle (reciprocal values)
-                const value = comparisonMatrix[rowIdx][colIdx];
-                if (value !== null) { // Cek apakah nilai sudah ada (bukan null)
-                    row.innerHTML += `<td class="p-2 border text-center">${value.toFixed(3)}</td>`;
-                } else {
-                    row.innerHTML += `<td class="p-2 border text-gray-400 text-center">?</td>`;
-                }
+        function renderComparisonMatrix() {
+            const container = document.getElementById('comparisonMatrix');
+            container.innerHTML = '';
+            
+            if (criteria.length < 2) {
+                container.innerHTML = '<p class="text-gray-500">Masukkan minimal 2 kriteria untuk menampilkan matriks perbandingan</p>';
+                return;
             }
-        });
-        
-        table.appendChild(row);
-    });
-    
-    container.appendChild(table);
-}
+
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'w-full border-collapse';
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th class="p-2 border bg-gray-100"></th>';
+            
+            criteria.forEach(c => {
+                headerRow.innerHTML += `<th class="p-2 border bg-gray-100 font-medium">${c}</th>`;
+            });
+            
+            table.appendChild(headerRow);
+            
+            // Create body rows
+            criteria.forEach((rowCrit, rowIdx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="p-2 border bg-gray-100 font-medium">${rowCrit}</td>`;
+                
+                criteria.forEach((colCrit, colIdx) => {
+                    if (rowIdx === colIdx) {
+                        row.innerHTML += `<td class="p-2 border text-center">1</td>`;
+                    } else if (rowIdx < colIdx) {
+                        // Upper triangle (input fields)
+                        const selectValue = comparisonMatrix[rowIdx][colIdx]; // Ambil nilai yang sudah ada
+                        row.innerHTML += `
+                            <td class="p-2 border">
+                                <select class="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                    onchange="updateComparisonMatrix(${rowIdx}, ${colIdx}, this.value)">
+                                    <option value="">Pilih</option>
+                                    <option value="9" ${selectValue === 9 ? 'selected' : ''}>9 - Mutlak lebih penting</option>
+                                    <option value="7" ${selectValue === 7 ? 'selected' : ''}>7 - Sangat lebih penting</option>
+                                    <option value="5" ${selectValue === 5 ? 'selected' : ''}>5 - Lebih penting</option>
+                                    <option value="3" ${selectValue === 3 ? 'selected' : ''}>3 - Sedikit lebih penting</option>
+                                    <option value="1" ${selectValue === 1 ? 'selected' : ''}>1 - Sama penting</option>
+                                    <option value="0.333" ${selectValue === 0.333 ? 'selected' : ''}>1/3 - Sedikit kurang penting</option>
+                                    <option value="0.2" ${selectValue === 0.2 ? 'selected' : ''}>1/5 - Kurang penting</option>
+                                    <option value="0.142" ${selectValue === 0.142 ? 'selected' : ''}>1/7 - Sangat kurang penting</option>
+                                    <option value="0.111" ${selectValue === 0.111 ? 'selected' : ''}>1/9 - Mutlak kurang penting</option>
+                                </select>
+                            </td>
+                        `;
+                    } else {
+                        // Lower triangle (reciprocal values)
+                        const value = comparisonMatrix[rowIdx][colIdx];
+                        if (value !== null) { // Cek apakah nilai sudah ada (bukan null)
+                            row.innerHTML += `<td class="p-2 border text-center">${value.toFixed(3)}</td>`;
+                        } else {
+                            row.innerHTML += `<td class="p-2 border text-gray-400 text-center">?</td>`;
+                        }
+                    }
+                });
+                
+                table.appendChild(row);
+            });
+            
+            container.appendChild(table);
+        }
 
 
         // Update comparison matrix
-        // Update comparison matrix
-function updateComparisonMatrix(row, col, value) {
-    if (value === '') {
-        comparisonMatrix[row][col] = null; // Set ke null jika tidak dipilih
-        comparisonMatrix[col][row] = null; // Set ke null juga untuk reciprocal
-    } else {
-        value = parseFloat(value);
-        comparisonMatrix[row][col] = value;
-        comparisonMatrix[col][row] = 1 / value;
-    }
-    
-    // Update the matrix display
-    renderComparisonMatrix();
-    
-    // Hide results if they were shown
-    document.getElementById('ahpResults').classList.add('hidden');
-}
+        function updateComparisonMatrix(row, col, value) {
+            if (value === '') {
+                comparisonMatrix[row][col] = null; // Set ke null jika tidak dipilih
+                comparisonMatrix[col][row] = null; // Set ke null juga untuk reciprocal
+            } else {
+                value = parseFloat(value);
+                comparisonMatrix[row][col] = value;
+                comparisonMatrix[col][row] = 1 / value;
+            }
+            
+            // Update the matrix display
+            renderComparisonMatrix();
+            
+            // Hide results if they were shown
+            document.getElementById('ahpResults').classList.add('hidden');
+        }
 
 
         // Render input nilai alternatif terhadap kriteria (AHP)
         function renderAhpAlternativeValues() {
             const container = document.getElementById('alternativeInputs');
+            // Hapus bagian nilai alternatif sebelumnya jika ada
+            const existingAltValuesDiv = container.querySelector('.alt-values-section');
+            if (existingAltValuesDiv) {
+                existingAltValuesDiv.remove();
+            }
+
             if (alternatives.length === 0 || criteria.length === 0) return;
-            let html = '<div class="mt-4"><h4 class="text-md font-medium text-gray-700 mb-2">Nilai Alternatif terhadap Kriteria</h4>';
+            
+            let html = '<div class="mt-4 alt-values-section"><h4 class="text-md font-medium text-gray-700 mb-2">Nilai Alternatif terhadap Kriteria</h4>';
             html += '<div class="overflow-auto"><table class="w-full border-collapse"><thead><tr><th class="p-2 border bg-gray-100">Alternatif \\ Kriteria</th>';
             criteria.forEach(c => { html += `<th class='p-2 border bg-gray-100'>${c}</th>`; });
             html += '</tr></thead><tbody>';
-            // Inisialisasi jika belum ada
-            if (ahpAlternativeValues.length !== alternatives.length) {
-                ahpAlternativeValues = [];
+            
+            // Inisialisasi jika belum ada atau ukuran berubah
+            if (ahpAlternativeValues.length !== alternatives.length || (ahpAlternativeValues.length > 0 && ahpAlternativeValues[0].length !== criteria.length)) {
+                const newAhpAlternativeValues = [];
                 for (let i = 0; i < alternatives.length; i++) {
-                    ahpAlternativeValues[i] = new Array(criteria.length).fill(0);
+                    newAhpAlternativeValues[i] = [];
+                    for (let j = 0; j < criteria.length; j++) {
+                        // Coba pertahankan nilai yang sudah ada jika kriteria/alternatif masih sama
+                        if (ahpAlternativeValues[i] && ahpAlternativeValues[i][j] !== undefined) {
+                            newAhpAlternativeValues[i][j] = ahpAlternativeValues[i][j];
+                        } else {
+                            newAhpAlternativeValues[i][j] = 0; // Default value
+                        }
+                    }
                 }
+                ahpAlternativeValues = newAhpAlternativeValues;
             }
+
             alternatives.forEach((alt, i) => {
                 html += `<tr><td class='p-2 border bg-gray-100 font-medium'>${alt}</td>`;
                 criteria.forEach((_, j) => {
@@ -598,18 +722,16 @@ function updateComparisonMatrix(row, col, value) {
             html += '</tbody></table></div></div>';
             container.insertAdjacentHTML('beforeend', html);
         }
+
         function updateAhpAltValue(i, j, value) {
             ahpAlternativeValues[i][j] = parseFloat(value) || 0;
         }
-        // Panggil renderAhpAlternativeValues setiap kali alternatif/kriteria berubah
-        // Tambahkan di akhir renderCriteriaList dan renderAlternativeList
-        // ...existing code...
-        // Perbaiki calculateAhp agar menghitung bobot alternatif berdasarkan input user
+        
         function calculateAhp() {
             // Validasi matrix kriteria
             for (let i = 0; i < criteria.length; i++) {
                 for (let j = 0; j < criteria.length; j++) {
-                    if (i < j && comparisonMatrix[i][j] === '') {
+                    if (i < j && (comparisonMatrix[i][j] === null || comparisonMatrix[i][j] === '')) {
                         alert(`Silakan lengkapi perbandingan antara ${criteria[i]} dan ${criteria[j]}`);
                         return;
                     }
@@ -675,7 +797,10 @@ function updateComparisonMatrix(row, col, value) {
             
             // RI values for n=1 to 10
             const RI = [0, 0, 0.58, 0.9, 1.12, 1.24, 1.32, 1.41, 1.45, 1.49];
-            const CR = CI / RI[n];
+            let CR = 0;
+            if (n > 1) { // Avoid division by zero for n=1
+                CR = CI / RI[n];
+            }
             
             // Hitung bobot alternatif berdasarkan bobot kriteria
             const altScores = [];
@@ -684,99 +809,115 @@ function updateComparisonMatrix(row, col, value) {
                 for (let j = 0; j < criteria.length; j++) {
                     // Normalisasi per kriteria (benefit, max)
                     let max = Math.max(...ahpAlternativeValues.map(row => row[j]));
-                    score += (ahpAlternativeValues[i][j] / max) * criteriaWeights[j];
+                    // Hindari pembagian dengan nol jika max adalah 0
+                    const normalizedAltValue = max === 0 ? 0 : (ahpAlternativeValues[i][j] / max);
+                    score += normalizedAltValue * criteriaWeights[j];
                 }
                 altScores.push(score);
             }
             // Normalisasi skor alternatif
             const sumAlt = altScores.reduce((a, b) => a + b, 0);
-            const altPriorities = altScores.map(s => s / sumAlt);
+            const altPriorities = altScores.map(s => sumAlt === 0 ? 0 : s / sumAlt); // Hindari pembagian dengan nol
+            
             // Tampilkan hasil
             displayAhpResults(CR, altPriorities);
         }
-        // Ubah displayAhpResults agar menerima altPriorities
+
         function displayAhpResults(consistencyRatio, altPriorities) {
-    document.getElementById('ahpResults').classList.remove('hidden');
+            document.getElementById('ahpResults').classList.remove('hidden');
 
-    // Display criteria priorities
-    const ctx1 = document.getElementById('ahpCriteriaChart').getContext('2d');
-    // Perbaikan: Pastikan itu adalah instance Chart sebelum destroy
-    if (ahpCriteriaChartInstance instanceof Chart) { // Gunakan variabel global
-        ahpCriteriaChartInstance.destroy();
-    }
-
-    ahpCriteriaChartInstance = new Chart(ctx1, { // Simpan instance ke variabel global
-        type: 'bar',
-        data: {
-            labels: criteria,
-            datasets: [{
-                label: 'Bobot Prioritas',
-                data: criteriaWeights,
-                backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 1
-                }
+            // Display criteria priorities
+            const ctx1 = document.getElementById('ahpCriteriaChart').getContext('2d');
+            if (ahpCriteriaChartInstance instanceof Chart) {
+                ahpCriteriaChartInstance.destroy();
             }
-        }
-    });
 
-    // Chart alternatif
-    const ctx2 = document.getElementById('ahpAlternativeChart').getContext('2d');
-    // Perbaikan: Pastikan itu adalah instance Chart sebelum destroy
-    if (ahpAlternativeChartInstance instanceof Chart) { // Gunakan variabel global
-        ahpAlternativeChartInstance.destroy();
-    }
-
-    ahpAlternativeChartInstance = new Chart(ctx2, { // Simpan instance ke variabel global
-        type: 'bar',
-        data: {
-            labels: alternatives,
-            datasets: [{
-                label: 'Bobot Prioritas',
-                data: altPriorities,
-                backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 1
+            ahpCriteriaChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: criteria,
+                    datasets: [{
+                        label: 'Bobot Prioritas',
+                        data: criteriaWeights,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
                 }
+            });
+
+            // Chart alternatif
+            const ctx2 = document.getElementById('ahpAlternativeChart').getContext('2d');
+            if (ahpAlternativeChartInstance instanceof Chart) {
+                ahpAlternativeChartInstance.destroy();
             }
+
+            ahpAlternativeChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: alternatives,
+                    datasets: [{
+                        label: 'Bobot Prioritas',
+                        data: altPriorities,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                }
+            });
+
+            // Perbaikan: Temukan maxIndex di sini
+            const maxScore = Math.max(...altPriorities);
+            const maxIndex = altPriorities.indexOf(maxScore);
+
+            // Generate recommendation
+            let recommendationText = '';
+            let consistencyStatus = '';
+            const bestAlternative = alternatives[maxIndex];
+
+            if (consistencyRatio < 0.1) {
+                consistencyStatus = 'Konsisten';
+                recommendationText += `<p class="text-green-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Konsisten)</p>`;
+            } else {
+                consistencyStatus = 'Tidak Konsisten';
+                recommendationText += `<p class="text-red-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Tidak Konsisten - Silakan periksa kembali perbandingan kriteria)</p>`;
+            }
+
+            recommendationText += `<p class="text-gray-700 mb-2">Berdasarkan perhitungan AHP, alternatif pengujian dengan prioritas tertinggi adalah:</p>
+                                 <p class="text-lg font-semibold text-blue-600">${bestAlternative}</p>
+                                 <p class="text-gray-600 mt-4">Disarankan untuk memprioritaskan pengujian ini dalam rencana automation testing Anda.</p>`;
+
+            document.getElementById('ahpRecommendation').innerHTML = recommendationText;
+
+            // Save AHP calculation to Firebase
+            saveCalculationHistory('AHP', {
+                criteria: criteria,
+                alternatives: alternatives,
+                criteriaWeights: criteriaWeights,
+                alternativePriorities: altPriorities,
+                consistencyRatio: consistencyRatio,
+                recommendation: bestAlternative,
+                consistencyStatus: consistencyStatus
+            });
         }
-    });
-
-    // Perbaikan: Temukan maxIndex di sini
-    const maxScore = Math.max(...altPriorities);
-    const maxIndex = altPriorities.indexOf(maxScore);
-
-    // Generate recommendation
-    let recommendationText = '';
-    if (consistencyRatio < 0.1) {
-        recommendationText += `<p class="text-green-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Konsisten)</p>`;
-    } else {
-        recommendationText += `<p class="text-red-600 font-medium mb-2">Rasio Konsistensi: ${consistencyRatio.toFixed(3)} (Tidak Konsisten - Silakan periksa kembali perbandingan kriteria)</p>`;
-    }
-
-    recommendationText += `<p class="text-gray-700 mb-2">Berdasarkan perhitungan AHP, alternatif pengujian dengan prioritas tertinggi adalah:</p>
-                         <p class="text-lg font-semibold text-blue-600">${alternatives[maxIndex]}</p>
-                         <p class="text-gray-600 mt-4">Disarankan untuk memprioritaskan pengujian ini dalam rencana automation testing Anda.</p>`;
-
-    document.getElementById('ahpRecommendation').innerHTML = recommendationText;
-}
-
 
 
         // SAW functions
@@ -795,8 +936,13 @@ function updateComparisonMatrix(row, col, value) {
                 weight: weight
             });
             
+            // Clear input fields after adding
+            inputs[0].value = '';
+            inputs[1].value = '';
+
             renderSawCriteriaList();
             renderSawAttributes();
+            renderCriteriaTypes(); // Ensure types are rendered/updated
         }
 
         function addSawAlternative() {
@@ -815,47 +961,44 @@ function updateComparisonMatrix(row, col, value) {
 
         function renderSawCriteriaList() {
             const container = document.getElementById('sawCriteriaInputs');
-            container.innerHTML = '';
+            // Clear existing list items, but keep the input fields
+            const existingItems = container.querySelectorAll('.bg-gray-50');
+            existingItems.forEach(item => item.remove());
             
+            // Add existing criteria
             sawCriteria.forEach((c, index) => {
                 const div = document.createElement('div');
                 div.className = 'grid grid-cols-3 gap-2 items-center bg-gray-50 p-3 rounded-lg';
                 div.innerHTML = `
                     <span class="col-span-2 font-medium">${c.name}</span>
                     <span class="text-right">${c.weight}%</span>
+                    <button onclick="removeSawCriteria(${index})" class="text-red-500 hover:text-red-700 ml-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 `;
-                container.appendChild(div);
+                container.prepend(div); // Add to top
             });
-            
-            // Add input fields
-            const inputDiv = document.createElement('div');
-            inputDiv.className = 'grid grid-cols-3 gap-2 items-center';
-            inputDiv.innerHTML = `
-                <input type="text" class="col-span-2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Kriteria">
-                <input type="number" min="0" max="100" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Bobot (0-100)">
-            `;
-            container.appendChild(inputDiv);
-            
-            // Add button
-            const buttonDiv = document.createElement('div');
-            buttonDiv.className = 'mt-2';
-            buttonDiv.innerHTML = `
-                <button onclick="addSawCriteria()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                    Tambah Kriteria
-                </button>
-            `;
-            container.appendChild(buttonDiv);
-            
-            // Update criteria types
+        }
+
+        function removeSawCriteria(index) {
+            sawCriteria.splice(index, 1);
+            // Adjust sawValues and criteriaTypes arrays
+            sawValues.forEach(altRow => altRow.splice(index, 1));
+            criteriaTypes.splice(index, 1);
+
+            renderSawCriteriaList();
+            renderSawAttributes();
             renderCriteriaTypes();
         }
 
+
         function renderSawAlternativeList() {
             const container = document.getElementById('sawAlternativeInputs');
-            container.innerHTML = '';
+            // Clear existing list items, but keep the input field
+            const existingItems = container.querySelectorAll('.bg-gray-50');
+            existingItems.forEach(item => item.remove());
             
             sawAlternatives.forEach((a, index) => {
                 const div = document.createElement('div');
@@ -868,25 +1011,13 @@ function updateComparisonMatrix(row, col, value) {
                         </svg>
                     </button>
                 `;
-                container.appendChild(div);
+                container.prepend(div); // Add to top
             });
-            
-            // Add input field
-            const inputDiv = document.createElement('div');
-            inputDiv.className = 'flex items-center';
-            inputDiv.innerHTML = `
-                <input type="text" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Nama Alternatif">
-                <button onclick="addSawAlternative()" class="ml-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            `;
-            container.appendChild(inputDiv);
         }
 
         function removeSawAlternative(index) {
             sawAlternatives.splice(index, 1);
+            sawValues.splice(index, 1); // Remove corresponding row from sawValues
             renderSawAlternativeList();
             renderSawAttributes();
         }
@@ -895,7 +1026,7 @@ function updateComparisonMatrix(row, col, value) {
             const container = document.getElementById('sawAttributes');
             
             if (sawCriteria.length === 0 || sawAlternatives.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-sm">Masukkan kriteria terlebih dahulu</p>';
+                container.innerHTML = '<p class="text-gray-500 text-sm">Masukkan kriteria dan alternatif terlebih dahulu</p>';
                 return;
             }
             
@@ -905,7 +1036,7 @@ function updateComparisonMatrix(row, col, value) {
                     <table class="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th class="p-2 border bg-gray-100">Alternatif \ Kriteria</th>
+                                <th class="p-2 border bg-gray-100">Alternatif \\ Kriteria</th>
             `;
             
             sawCriteria.forEach(c => {
@@ -914,13 +1045,19 @@ function updateComparisonMatrix(row, col, value) {
             
             html += `</tr></thead><tbody>`;
             
-            // Initialize sawValues if needed
-            if (sawValues.length !== sawAlternatives.length) {
-                sawValues = [];
-                for (let i = 0; i < sawAlternatives.length; i++) {
-                    sawValues[i] = new Array(sawCriteria.length).fill(0);
+            // Initialize sawValues if needed or if dimensions change
+            const newSawValues = [];
+            for (let i = 0; i < sawAlternatives.length; i++) {
+                newSawValues[i] = [];
+                for (let j = 0; j < sawCriteria.length; j++) {
+                    if (sawValues[i] && sawValues[i][j] !== undefined) {
+                        newSawValues[i][j] = sawValues[i][j];
+                    } else {
+                        newSawValues[i][j] = 0; // Default value
+                    }
                 }
             }
+            sawValues = newSawValues;
             
             // Create rows for alternatives
             sawAlternatives.forEach((alt, altIdx) => {
@@ -954,12 +1091,20 @@ function updateComparisonMatrix(row, col, value) {
             
             let html = '<div class="space-y-2">';
             
-            sawCriteria.forEach((crit, index) => {
-                // Initialize criteria types if needed
-                if (!criteriaTypes[index]) {
-                    criteriaTypes[index] = 'benefit';
+            // Initialize criteriaTypes array if its length doesn't match sawCriteria
+            if (criteriaTypes.length !== sawCriteria.length) {
+                const newCriteriaTypes = [];
+                for (let i = 0; i < sawCriteria.length; i++) {
+                    if (criteriaTypes[i]) {
+                        newCriteriaTypes[i] = criteriaTypes[i];
+                    } else {
+                        newCriteriaTypes[i] = 'benefit'; // Default to benefit
+                    }
                 }
-                
+                criteriaTypes = newCriteriaTypes;
+            }
+
+            sawCriteria.forEach((crit, index) => {
                 html += `
                     <div class="flex items-center">
                         <span class="w-1/3 font-medium">${crit.name}</span>
@@ -998,7 +1143,7 @@ function updateComparisonMatrix(row, col, value) {
             
             for (let i = 0; i < sawAlternatives.length; i++) {
                 for (let j = 0; j < sawCriteria.length; j++) {
-                    if (isNaN(sawValues[i][j])) {
+                    if (isNaN(sawValues[i][j]) || sawValues[i][j] === 0) { // Added check for 0
                         alert(`Silakan lengkapi nilai untuk alternatif ${sawAlternatives[i]} pada kriteria ${sawCriteria[j].name}`);
                         return;
                     }
@@ -1007,6 +1152,10 @@ function updateComparisonMatrix(row, col, value) {
             
             // Normalize the weights
             const totalWeight = sawCriteria.reduce((sum, crit) => sum + crit.weight, 0);
+            if (totalWeight === 0) {
+                alert('Total bobot kriteria tidak boleh nol.');
+                return;
+            }
             const normalizedWeights = sawCriteria.map(crit => crit.weight / totalWeight);
             
             // Step 1: Normalize the decision matrix
@@ -1024,9 +1173,9 @@ function updateComparisonMatrix(row, col, value) {
                 normalizedMatrix[i] = [];
                 for (let j = 0; j < sawCriteria.length; j++) {
                     if (criteriaTypes[j] === 'benefit') {
-                        normalizedMatrix[i][j] = sawValues[i][j] / maxValues[j];
+                        normalizedMatrix[i][j] = maxValues[j] === 0 ? 0 : sawValues[i][j] / maxValues[j]; // Handle division by zero
                     } else { // cost
-                        normalizedMatrix[i][j] = minValues[j] / sawValues[i][j];
+                        normalizedMatrix[i][j] = sawValues[i][j] === 0 ? 0 : minValues[j] / sawValues[i][j]; // Handle division by zero
                     }
                 }
             }
@@ -1037,7 +1186,7 @@ function updateComparisonMatrix(row, col, value) {
                     <table class="w-full border-collapse">
                         <thead>
                             <tr>
-                                <th class="p-2 border bg-gray-100">Alternatif \ Kriteria</th>
+                                <th class="p-2 border bg-gray-100">Alternatif \\ Kriteria</th>
             `;
             
             sawCriteria.forEach(c => {
@@ -1071,11 +1220,11 @@ function updateComparisonMatrix(row, col, value) {
             
             // Display final scores chart
             const ctx = document.getElementById('sawChart').getContext('2d');
-            if (window.sawChart && typeof window.sawChart.destroy === 'function') {
-                window.sawChart.destroy();
+            if (sawChartInstance instanceof Chart) { // Use sawChartInstance
+                sawChartInstance.destroy();
             }
             
-            window.sawChart = new Chart(ctx, {
+            sawChartInstance = new Chart(ctx, { // Assign to sawChartInstance
                 type: 'bar',
                 data: {
                     labels: sawAlternatives,
@@ -1101,10 +1250,11 @@ function updateComparisonMatrix(row, col, value) {
             // Find and display recommendation
             const maxScore = Math.max(...finalScores);
             const bestIndex = finalScores.indexOf(maxScore);
+            const bestAlternative = sawAlternatives[bestIndex];
             
             let recommendationText = `
                 <p class="text-gray-700 mb-2">Berdasarkan perhitungan SAW, alternatif pengujian dengan skor tertinggi adalah:</p>
-                <p class="text-lg font-semibold text-green-600">${sawAlternatives[bestIndex]} (Skor: ${maxScore.toFixed(3)})</p>
+                <p class="text-lg font-semibold text-green-600">${bestAlternative} (Skor: ${maxScore.toFixed(3)})</p>
                 <p class="text-gray-600 mt-4">Rincian skor:</p>
                 <ul class="list-disc list-inside mt-2">
             `;
@@ -1122,8 +1272,16 @@ function updateComparisonMatrix(row, col, value) {
             
             // Show results section
             document.getElementById('sawResults').classList.remove('hidden');
+
+            // Save SAW calculation to Firebase
+            saveCalculationHistory('SAW', {
+                criteria: sawCriteria, // Store name and weight
+                alternatives: sawAlternatives,
+                finalScores: finalScores,
+                recommendation: bestAlternative,
+                maxScore: maxScore
+            });
         }
     </script>
 </body>
 </html>
-
